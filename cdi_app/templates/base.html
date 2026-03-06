@@ -1,0 +1,168 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{% get_current_language as LANGUAGE_CODE %}{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CDI Mock System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-graduation-cap me-2"></i>CDI Mock System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                <i class="fas fa-chart-bar me-1"></i>{% trans "Dashboard" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_bookings' %}">
+                                <i class="fas fa-calendar me-1"></i>{% trans "Bookings" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_users' %}">
+                                <i class="fas fa-users me-1"></i>{% trans "Users" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_schedule' %}">
+                                <i class="fas fa-calendar-alt me-1"></i>{% trans "Schedule" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-1" href="{% url 'admin_answers' %}">
+                                <i class="fas fa-file-alt me-1"></i>{% trans "Answers" %}
+                                {% if pending_answers_count %}
+                                <span class="badge bg-danger" style="font-size: 0.7rem;">{{ pending_answers_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin_feedbacks' %}">
+                                <i class="fas fa-comments me-1"></i>{% trans "Feedbacks" %}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="fas fa-home me-1"></i>{% trans "Dashboard" %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'book_test' %}">
+                                <i class="fas fa-calendar-plus me-1"></i>{% trans "Book Test" %}
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <!-- Divider for mobile -->
+                    <li class="nav-item d-lg-none">
+                        <hr class="my-2" style="border-color: var(--border-color);">
+                    </li>
+
+                    <!-- User Info - Mobile -->
+                    <li class="nav-item d-lg-none mb-2">
+                        <div class="d-flex align-items-center px-3">
+                            <div class="user-avatar me-2">{{ user.full_name.0 }}</div>
+                            <div>
+                                <div class="fw-bold" style="font-size: 0.95rem;">{{ user.full_name }}</div>
+                                <small style="color: var(--text-secondary);">{{ user.username }}</small>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Theme Toggle -->
+                    <li class="nav-item mb-2 mb-lg-0 ms-lg-2">
+                        <button class="theme-toggle w-100" id="themeToggle" type="button">
+                            <i class="fas fa-moon me-2"></i>
+                            <span class="d-lg-none">{% trans "Dark Mode" %}</span>
+                        </button>
+                    </li>
+
+                    <!-- Logout - Mobile -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link text-danger" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt me-1"></i>{% trans "Logout" %}
+                        </a>
+                    </li>
+
+                    <!-- User Dropdown - Desktop Only -->
+                    <li class="nav-item dropdown ms-lg-2 d-none d-lg-block">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="user-avatar me-2">{{ user.full_name.0 }}</div>
+                            <span>{{ user.full_name }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>{% trans "Logout" %}</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'danger' or message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if not user.is_authenticated %}auth-page{% else %}py-4{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-1"><strong>CDI Mock System</strong></p>
+                    <p class="mb-0 small">{% trans "Computer Delivered IELTS Mock Test Platform" %}</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0">&copy; 2026 CDI Mock System. {% trans "All rights reserved." %}</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/script.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

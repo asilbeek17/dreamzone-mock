@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Book Test" %} - CDI Mock System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar-plus"></i> {% trans "Book Mock Test" %}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> {% trans "Important Information" %}</h6>
+                        <ul class="mb-0">
+                            <li>{% trans "Test fee: 50,000 UZS" %}</li>
+                            <li>{% trans "Maximum 6 students per session" %}</li>
+                            <li>{% trans "Monday-Saturday: 10:00, 14:00" %}</li>
+                            <li>{% trans "Sunday: 09:00, 13:00, 16:00" %}</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="bookingForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger text-center">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> {% trans "Full Name" %}
+                            </label>
+                            <input type="text" class="form-control" value="{{ user.full_name }}" disabled>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-phone"></i> {% trans "Phone Number" %}
+                            </label>
+                            <input type="text" class="form-control" value="{{ user.phone_number }}" disabled>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_test_date" class="form-label">
+                                <i class="fas fa-calendar"></i> {% trans "Test Date" %} *
+                            </label>
+                            <input type="date" name="test_date" id="id_test_date" class="form-control" required 
+                                   min="{{ min_date }}" value="{{ form.test_date.value|default:'' }}">
+                            {% if form.test_date.errors %}
+                            <div class="text-danger small">{{ form.test_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_test_time" class="form-label">
+                                <i class="fas fa-clock"></i> {% trans "Test Time" %} *
+                            </label>
+                            <select name="test_time" id="id_test_time" class="form-control" required>
+                                <option value="">{% trans "Select a date first" %}</option>
+                            </select>
+                            <small class="form-text text-muted" id="availabilityInfo"></small>
+                            {% if form.test_time.errors %}
+                            <div class="text-danger small">{{ form.test_time.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Payment Card -->
+                        <p class="fw-semibold mb-2" style="color: var(--text-secondary);">
+                            <i class="fas fa-credit-card me-1"></i> {% trans "Pay to this card before booking" %}
+                        </p>
+                        <div class="payment-card mb-2">
+                            <div class="payment-card-chip">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="payment-card-number" id="cardNumber">5614 6821 1790 1712</div>
+                            <div class="payment-card-footer">
+                                <div>
+                                    <div class="payment-card-label">{% trans "Cardholder" %}</div>
+                                    <div class="payment-card-name">Shakhriyor Bekmurodov</div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-sm payment-copy-btn" id="copyCardBtn"
+                                            onclick="copyCardNumber()" title="{% trans 'Copy card number' %}">
+                                        <i class="fas fa-copy me-1"></i><span id="copyBtnText">{% trans "Copy" %}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Warning -->
+                        <div class="alert alert-warning alert-persistent d-flex gap-2 align-items-start mb-3 py-2 px-3">
+                            <i class="fas fa-shield-alt flex-shrink-0 mt-1" style="font-size: 0.75rem;"></i>
+                            <span style="font-size: 0.78rem; line-height: 1.4;">{% trans "After completing your payment, please take a screenshot immediately and upload it to the website. All uploaded payment screenshots are manually reviewed by our team. Once verified, your payment will be approved or rejected accordingly. Please note that fake or edited screenshots can be identified and will be strictly rejected." %}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_payment_screenshot" class="form-label">
+                                <i class="fas fa-image"></i> {% trans "Payment Screenshot" %} *
+                            </label>
+                            <input type="file" name="payment_screenshot" id="id_payment_screenshot" 
+                                   class="form-control" accept="image/*" required>
+                            <small class="form-text text-muted">{% trans "Upload screenshot of payment (50,000 UZS)" %}</small>
+                            {% if form.payment_screenshot.errors %}
+                            <div class="text-danger small">{{ form.payment_screenshot.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> {% trans "Submit Booking" %}
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> {% trans "Back to Dashboard" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 16px;
+    padding: 24px 28px 20px;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+.payment-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+}
+.payment-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -30px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+}
+.payment-card-chip {
+    font-size: 1.6rem;
+    color: #f0c040;
+    margin-bottom: 18px;
+    opacity: 0.9;
+}
+.payment-card-number {
+    font-size: clamp(1rem, 4vw, 1.45rem);
+    letter-spacing: 0.15em;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    white-space: nowrap;
+}
+.payment-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.payment-card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 2px;
+}
+.payment-card-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+.payment-copy-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    padding: 4px 12px;
+    transition: background 0.2s;
+    backdrop-filter: blur(4px);
+}
+.payment-copy-btn:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff;
+}
+
+/* Override global color rules that would bleed into the payment card */
+.card .card-body .payment-card,
+.card .card-body .payment-card * {
+    color: #ffffff !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyCardNumber() {
+    var number = '5614682117901712';
+    navigator.clipboard.writeText(number).then(function() {
+        document.getElementById('copyBtnText').textContent = '{% trans "Copied!" %}';
+        document.getElementById('copyCardBtn').style.background = 'rgba(40,200,100,0.35)';
+        setTimeout(function() {
+            document.getElementById('copyBtnText').textContent = '{% trans "Copy" %}';
+            document.getElementById('copyCardBtn').style.background = '';
+        }, 2000);
+    });
+}
+
+$(document).ready(function() {
+    $('#id_test_date').on('change', function() {
+        const selectedDate = $(this).val();
+        if (selectedDate) {
+            // Fetch available times
+            $.ajax({
+                url: '{% url "get_available_times" %}',
+                data: { date: selectedDate },
+                success: function(data) {
+                    const timeSelect = $('#id_test_time');
+                    timeSelect.empty();
+                    
+                    if (data.times && data.times.length > 0) {
+                        timeSelect.append('<option value="">{% trans "Select time" %}</option>');
+                        data.times.forEach(function(timeSlot) {
+                            timeSelect.append(
+                                `<option value="${timeSlot.time}">${timeSlot.time} (${timeSlot.available} {% trans "slots available" %})</option>`
+                            );
+                        });
+                        $('#availabilityInfo').text('{% trans "Select an available time slot" %}').removeClass('text-danger').addClass('text-success');
+                    } else {
+                        timeSelect.append('<option value="">{% trans "No slots available" %}</option>');
+                        $('#availabilityInfo').text('{% trans "No available slots for this date" %}').removeClass('text-success').addClass('text-danger');
+                    }
+                },
+                error: function() {
+                    alert('{% trans "Error loading time slots" %}');
+                }
+            });
+        }
+    });
+    
+    // Trigger change event if date is already selected (on form reload with errors)
+    if ($('#id_test_date').val()) {
+        $('#id_test_date').trigger('change');
+    }
+});
+</script>
+{% endblock %}

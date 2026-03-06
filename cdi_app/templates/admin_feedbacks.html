@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Feedbacks" %} - Admin - CDI Mock System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4"><i class="fas fa-comments"></i> {% trans "Student Feedbacks" %}</h2>
+
+    <div class="row">
+        {% for feedback in feedbacks %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">{{ feedback.user.full_name }}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ feedback.booking.test_date }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <div class="mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= feedback.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">{{ feedback.created_at|date:"d M Y" }}</small>
+                        </div>
+                    </div>
+                    <p class="card-text">{{ feedback.comment }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> {% trans "No feedbacks yet" %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

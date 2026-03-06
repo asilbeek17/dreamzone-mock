@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Booking Details" %} - Admin - CDI Mock System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-file-alt"></i> {% trans "Booking Details" %} #{{ booking.id }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Student Information -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="mb-3">{% trans "Student Information" %}</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%"><i class="fas fa-user"></i> {% trans "Name" %}:</th>
+                                    <td>{{ booking.user.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-envelope"></i> {% trans "Email" %}:</th>
+                                    <td>{{ booking.user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-phone"></i> {% trans "Phone" %}:</th>
+                                    <td>{{ booking.user.phone_number }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Test Information -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="mb-3">{% trans "Test Information" %}</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%"><i class="fas fa-calendar"></i> {% trans "Date" %}:</th>
+                                    <td>{{ booking.test_date }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-clock"></i> {% trans "Time" %}:</th>
+                                    <td>{{ booking.test_time }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-info-circle"></i> {% trans "Status" %}:</th>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                                        {% elif booking.status == 'accepted' %}
+                                        <span class="badge bg-success">{% trans "Accepted" %}</span>
+                                        {% elif booking.status == 'rejected' %}
+                                        <span class="badge bg-danger">{% trans "Rejected" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-info">{% trans "Completed" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-calendar-plus"></i> {% trans "Booked on" %}:</th>
+                                    <td>{{ booking.created_at|date:"d M Y, H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payment Screenshot -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">{% trans "Payment Screenshot" %}</h5>
+                            <div class="text-center">
+                                <img src="{{ booking.payment_screenshot.url }}" alt="Payment" class="img-fluid rounded shadow" style="max-height: 500px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Actions -->
+                    {% if booking.status == 'pending' %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">{% trans "Admin Actions" %}</h5>
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Admin Notes" %}</label>
+                                    <textarea name="admin_notes" class="form-control" rows="3" placeholder="{% trans 'Add notes for student...' %}">{{ booking.admin_notes }}</textarea>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button type="submit" name="action" value="accept" class="btn btn-success">
+                                        <i class="fas fa-check"></i> {% trans "Accept Booking" %}
+                                    </button>
+                                    <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                        <i class="fas fa-times"></i> {% trans "Reject Booking" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Mark as Completed -->
+                    {% if booking.status == 'accepted' %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="complete" class="btn btn-info">
+                                    <i class="fas fa-flag-checkered"></i> {% trans "Mark as Completed" %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Upload Results Section -->
+                    {% if booking.status == 'completed' or booking.status == 'accepted' %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">{% trans "Test Results" %}</h5>
+                            {% if result %}
+                            <div class="alert alert-success">
+                                <p class="mb-2"><strong>{% trans "Results already uploaded" %}:</strong></p>
+                                <p class="mb-1">
+                                    <strong>L:</strong> {{ result.listening }} ({{ result.listening_correct }}/40) |
+                                    <strong>R:</strong> {{ result.reading }} ({{ result.reading_correct }}/40)
+                                </p>
+                                <p class="mb-1">
+                                    <strong>W:</strong> {{ result.writing }} (T1: {{ result.writing_task1 }}, T2: {{ result.writing_task2 }}) |
+                                    <strong>S:</strong> {{ result.speaking }}
+                                </p>
+                                <p class="mb-0">
+                                    <strong>{% trans "Overall" %}:</strong> {{ result.overall }}
+                                </p>
+                            </div>
+                            <a href="{% url 'admin_upload_result' booking.id %}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> {% trans "Edit Results" %}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'admin_upload_result' booking.id %}" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> {% trans "Upload Results" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Admin Notes Display -->
+                    {% if booking.admin_notes and booking.status != 'pending' %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-comment"></i> {% trans "Admin Notes" %}</h6>
+                                <p class="mb-0">{{ booking.admin_notes }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+                    <div class="text-center">
+                        <a href="{% url 'admin_bookings' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> {% trans "Back to Bookings" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
