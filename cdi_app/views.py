@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.http import JsonResponse
-from django.db.models import Q, Count
-from datetime import datetime, time, timedelta
+from django.db.models import Q
+from datetime import datetime, timedelta
 from collections import defaultdict
 from django.utils import timezone
 from .models import User, Booking, Result, Feedback
@@ -39,7 +39,8 @@ def register_view(request):
     """User registration view"""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
+
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
