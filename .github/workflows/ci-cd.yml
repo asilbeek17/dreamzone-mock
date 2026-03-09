@@ -155,12 +155,12 @@ jobs:
             "cd /opt/cdi && bash scripts/deploy.sh"
 
       - name: Verify deployment
+        env:
+          SSHPASS: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          sleep 15
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://dzmock.uz/ || echo "000")
-          echo "Health check response: HTTP $HTTP_CODE"
-          if [[ ! "$HTTP_CODE" =~ ^(200|301|302|303)$ ]]; then
-            echo "ERROR: Deployment health check failed (HTTP $HTTP_CODE)"
-            exit 1
-          fi
-          echo "Deployment verified successfully."
+          sudo apt-get install -y -q sshpass
+          sleep 10
+          # Verify container is healthy on the server itself
+          sshpass -e ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            'docker inspect cdi-web-1 --format="state={{.State.Status}} health={{.State.Health.Status}}"'
