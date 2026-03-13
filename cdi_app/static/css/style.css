@@ -460,6 +460,28 @@ footer p {
     margin: 0;
 }
 
+.footer-telegram-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffffff;
+    background: #2AABEE;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    vertical-align: middle;
+    line-height: 1.6;
+}
+
+.footer-telegram-link:hover {
+    background: #1a8fcb;
+    color: #ffffff;
+    text-decoration: none;
+}
+
 /* ==================== AUTH PAGES ==================== */
 
 .auth-page {
