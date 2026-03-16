@@ -165,12 +165,12 @@ class Result(models.Model):
         """Auto-calculate writing and overall scores with IELTS rounding rules"""
         # Calculate Writing overall from Task 1 and Task 2
         # Formula: (Task1 + Task2 * 2) / 3
-        if self.writing_task1 and self.writing_task2:
+        if self.writing_task1 is not None and self.writing_task2 is not None:
             writing_raw = (float(self.writing_task1) + float(self.writing_task2) * 2) / 3
             self.writing = self._apply_ielts_rounding(writing_raw)
 
         # Calculate Overall from all four skills
-        if self.listening and self.reading and self.writing and self.speaking:
+        if self.listening is not None and self.reading is not None and self.writing is not None and self.speaking is not None:
             total = float(self.listening) + float(self.reading) + float(self.writing) + float(self.speaking)
             average = total / 4
             self.overall = self._apply_ielts_rounding(average)
